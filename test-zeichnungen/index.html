@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <script src="/js/demo-data.js"></script>
+  <script src="/js/demo-api.js"></script>
+  <link rel="stylesheet" href="/css/demo.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#003b71">
+  <title>Planungtool · Demo · Zeichnungsarchiv Test</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/test-zeichnungen/styles.css?v=1">
+  <link rel="stylesheet" href="/test-zeichnungen/layout-room.css?v=5">
+  <link rel="stylesheet" href="/test-zeichnungen/archive-enhancements.css?v=1">
+  <!-- /test-zeichnungen/layout-room.css?v=1 -->
+</head>
+<body>
+  <div class="app-shell drawing-shell">
+    <aside class="sidebar" id="sidebar">
+      <!--MAIN_BRAND-->
+      <nav class="main-nav" aria-label="Hauptnavigation">
+        <a class="nav-item" href="/"><span class="nav-icon">01</span><span>Übersicht</span></a>
+        <a class="nav-item" href="/?view=week"><span class="nav-icon">02</span><span>Wochenplanung</span></a>
+        <a class="nav-item" href="/?view=maintenance"><span class="nav-icon">03</span><span>Wartungen</span></a>
+        <a class="nav-item" href="/?view=work"><span class="nav-icon">04</span><span>Arbeitsaufträge</span></a>
+        <a class="nav-item" href="/ersatzteile/"><span class="nav-icon">05</span><span>Ersatzteile</span></a>
+        <a class="nav-item" href="/?view=assets"><span class="nav-icon">06</span><span>Anlagen</span></a>
+        <a class="nav-item" href="/?view=team"><span class="nav-icon">07</span><span>Team</span></a>
+        <a class="nav-item active test-nav-item" href="/test-zeichnungen/"><span class="nav-icon">T</span><span>Zeichnungen Test</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a class="ghost-row" href="/"><span>Zur aktiven Planung</span><span>→</span></a>
+        <div class="storage-state"><span class="state-dot test-dot"></span><span>Testdaten nur auf diesem Browser</span></div>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div>
+            <div class="eyebrow">Testumgebung · nicht produktiv</div>
+            <div class="top-context"><strong>Zeichnungsarchiv</strong><span id="topAssetContext">Anlage auswählen</span></div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span class="demo-pill">TEST</span>
+          <button class="button secondary" id="manageGroupsButton">Baugruppen verwalten</button>
+          <button class="button primary" id="uploadButton">+ Zeichnungen hochladen</button>
+        </div>
+      </header>
+
+      <main class="content drawing-content">
+        <div class="page-head drawing-page-head">
+          <div>
+            <p class="eyebrow">Technische Dokumentation</p>
+            <h1>Zeichnungsarchiv</h1>
+            <p class="page-sub">Anlage auswählen, alle Zeichnungen sofort sehen und bei Bedarf nach Baugruppe filtern.</p>
+          </div>
+          <div class="test-note"><strong>Testbetrieb</strong><span>Keine Zeichnung wird nach D1 oder R2 übertragen.</span></div>
+        </div>
+
+        <section class="drawing-layout">
+          <aside class="panel asset-browser">
+            <div class="panel-head compact-head">
+              <div><p class="eyebrow">01</p><h2>Anlage</h2></div>
+              <span class="panel-meta" id="assetCount">0</span>
+            </div>
+            <input class="browser-search" id="assetSearch" type="search" placeholder="Anlage suchen …" autocomplete="off">
+            <div class="asset-list" id="assetList"></div>
+          </aside>
+
+          <section class="panel drawing-list-panel">
+            <div class="drawing-toolbar">
+              <div class="drawing-toolbar-title">
+                <p class="eyebrow">02 · Zeichnungen</p>
+                <h2 id="drawingListTitle">Anlage auswählen</h2>
+                <span class="panel-meta" id="drawingCount">0 Zeichnungen</span>
+              </div>
+              <div class="drawing-toolbar-controls">
+                <input id="drawingSearch" type="search" placeholder="Zeichnungsnr. oder Bezeichnung …" autocomplete="off">
+                <select id="groupFilter" aria-label="Baugruppe filtern"><option value="">Alle Baugruppen</option></select>
+              </div>
+            </div>
+
+            <div class="drawing-table-wrap">
+              <table class="drawing-table">
+                <thead><tr><th>Zeichnungsnr.</th><th>Bezeichnung</th><th>Baugruppe</th><th>Rev.</th><th>Typ</th></tr></thead>
+                <tbody id="drawingTableBody"></tbody>
+              </table>
+              <div class="drawing-empty hidden" id="drawingEmpty"></div>
+            </div>
+          </section>
+
+          <aside class="panel preview-panel">
+            <div class="panel-head compact-head">
+              <div><p class="eyebrow">03</p><h2>Vorschau</h2></div>
+              <button class="text-button hidden" id="clearPreview">Schließen</button>
+            </div>
+            <div class="preview-stage" id="previewStage">
+              <div class="preview-placeholder">
+                <div class="preview-icon">PDF</div>
+                <strong>Zeichnung anklicken</strong>
+                <span>PDFs und Bilder werden hier direkt angezeigt – ohne Download.</span>
+              </div>
+            </div>
+            <div class="preview-meta hidden" id="previewMeta"></div>
+          </aside>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="groupModal" aria-hidden="true">
+    <section class="modal drawing-modal" role="dialog" aria-modal="true" aria-labelledby="groupModalTitle">
+      <div class="modal-head"><div><p class="eyebrow">Anlagenstruktur</p><h2 id="groupModalTitle">Baugruppen verwalten</h2></div><button class="icon-button" data-close-modal="groupModal">×</button></div>
+      <div class="modal-body">
+        <div class="selected-asset-card"><span>Anlage</span><strong id="groupAssetName">–</strong></div>
+        <div class="group-add-row"><input id="newGroupName" type="text" placeholder="Neue Baugruppe, z. B. Hydraulik"><button class="button primary" id="addGroupButton">Hinzufügen</button></div>
+        <div class="group-suggestions"><span>Schnell hinzufügen:</span><button data-suggest-group="Mechanik">Mechanik</button><button data-suggest-group="Elektrik">Elektrik</button><button data-suggest-group="Hydraulik">Hydraulik</button><button data-suggest-group="Pneumatik">Pneumatik</button><button data-suggest-group="Antrieb">Antrieb</button><button data-suggest-group="Sicherheit">Sicherheit</button><button data-suggest-group="Sonstiges">Sonstiges</button></div>
+        <div class="managed-groups" id="managedGroups"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="uploadModal" aria-hidden="true">
+    <section class="modal upload-modal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
+      <div class="modal-head"><div><p class="eyebrow">Schnellablage</p><h2 id="uploadModalTitle">Zeichnungen hochladen</h2></div><button class="icon-button" data-close-modal="uploadModal">×</button></div>
+      <div class="modal-body">
+        <div class="upload-context-grid">
+          <label><span>Anlage</span><input id="uploadAsset" type="text" readonly></label>
+          <label><span>Baugruppe</span><select id="uploadGroup"></select></label>
+        </div>
+        <label class="drop-zone" id="dropZone">
+          <input id="drawingFiles" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.dwg,.dxf" multiple hidden>
+          <strong>Dateien hier ablegen</strong>
+          <span>oder klicken und mehrere PDFs/Zeichnungen auswählen</span>
+          <small>PDF, PNG, JPG, WEBP, DWG, DXF</small>
+        </label>
+        <div id="uploadReview" class="upload-review hidden">
+          <div class="upload-review-head"><strong>Dateien kontrollieren</strong><span id="uploadFileCount"></span></div>
+          <div class="upload-review-list" id="uploadReviewList"></div>
+        </div>
+        <div class="form-footer"><button class="button secondary" data-close-modal="uploadModal">Abbrechen</button><button class="button primary" id="saveUploadButton" disabled>Zeichnungen speichern</button></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="drawingToast" role="status"></div>
+  <script type="module" src="/test-zeichnungen/app.js?v=1"></script>
+  <script type="module" src="/test-zeichnungen/archive-enhancements.js?v=1"></script>
+  <script type="module" src="/test-zeichnungen/full-preview-fit.js?v=1"></script>
+</body>
+</html>

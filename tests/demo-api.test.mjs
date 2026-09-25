@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFile} from 'node:fs/promises';
+const storage=new Map();
+let forwarded=0;
+const c=vm.createContext({URL,Response,Request,Date,JSON,structuredClone,crypto,location:{href:'https://demo.example/',origin:'https://demo.example'},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},document:{addEventListener(){}},fetch:async()=>{forwarded++;throw Error('Unexpected network');}});
+for(const file of ['demo-data','demo-api'])vm.runInContext(await readFile(new URL('../js/'+file+'.js',import.meta.url),'utf8'),c);
+const api=async(path,body,method=body?'POST':'GET')=>{const r=await c.fetch('https://demo.example/api/'+path,{method,...(body?{body:JSON.stringify(body)}:{})});return {status:r.status,data:await r.json()};};
+test('isolated fixtures, persistence, optimistic conflicts and monitoring',async()=>{
+ const initial=(await api('state')).data;assert.equal(initial.state.assets.length,5);assert.equal(initial.state.employees.length,4);
+ const payload={id:'test_task',title:'API test',kind:'work'};
+ let result=await api('mutate',{type:'task',id:payload.id,payload,action:'upsert',expectedRevision:0});assert.equal(result.status,200);assert.equal(result.data.current.revision,1);
+ assert.ok((await api('state')).data.state.tasks.some(x=>x.id===payload.id));
+ result=await api('mutate',{type:'task',id:payload.id,payload,action:'upsert',expectedRevision:0});assert.equal(result.status,409);
+ result=await api('mutate',{type:'task',id:payload.id,action:'delete',expectedRevision:1});assert.equal(result.status,200);assert.ok(!(await api('state')).data.state.tasks.some(x=>x.id===payload.id));
+ const record=(await api('monitoring/umwaelzer')).data.current;assert.equal(record.payload.sockets.length,8);
+ result=await api('monitoring/umwaelzer',{expectedRevision:record.revision,payload:{...record.payload,test:true}},'PUT');assert.equal(result.status,200);assert.equal((await api('monitoring/umwaelzer')).data.current.payload.test,true);
+ assert.equal((await api('unknown')).status,404);
+ const blocked=await c.fetch('https://external.example/api/state');assert.equal(blocked.status,403);assert.equal(forwarded,0);
+});
